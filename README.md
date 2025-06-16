@@ -1,6 +1,40 @@
-# TG Cook - Telegram Recipe Bot
+# Next.js Google Sheets Telegram WebApp
 
-A modern Telegram bot with a web view interface that displays recipes from a Google Sheet.
+Этот проект — Telegram WebApp на Next.js с интеграцией Google Sheets через API. Подходит для деплоя на Netlify/Vercel и безопасной работы с сервисным аккаунтом Google.
+
+## Запуск локально
+
+1. Установи зависимости:
+   ```bash
+   npm install
+   ```
+2. Создай файл `.env.local` в корне и добавь:
+   ```env
+   GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account@project.iam.gserviceaccount.com
+   GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+   GOOGLE_SHEET_ID=your_google_sheet_id
+   ```
+3. Запусти проект:
+   ```bash
+   npm run dev
+   ```
+
+## Структура
+
+- `/pages/index.jsx` — фронтенд для WebView
+- `/pages/api/sheet.js` — API-роут для работы с Google Sheets
+
+## Деплой
+
+- Для Netlify/Vercel: добавь переменные окружения в настройках проекта.
+- Build command: `next build`
+- Publish directory: `.next` (или `out` для next export)
+
+---
+
+## Старые файлы
+
+- `vite.config.js`, `index.html`, папка `src/` больше не используются.
 
 ## Features
 
@@ -64,4 +98,40 @@ The application uses:
 - Tailwind CSS for styling
 - Framer Motion for animations
 - Google Sheets API for data storage
-- Telegram Web App SDK for bot integration 
+- Telegram Web App SDK for bot integration
+
+## Tailwind CSS
+
+Если нужен Tailwind CSS, следуй официальной инструкции для Next.js: https://tailwindcss.com/docs/guides/nextjs 
+
+## Пример .env.local
+
+```
+GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account@project.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+GOOGLE_SHEET_ID=your_google_sheet_id
+```
+
+## Миграция с Vite/React
+
+- Все старые файлы из src/ и конфиги Vite удалены.
+- Теперь используется Next.js (pages, api routes).
+- Для стилей можно использовать Tailwind CSS (см. выше). 
+
+## Стартовые файлы Next.js
+
+- /pages/index.jsx — основной frontend
+- /pages/api/sheet.js — API для Google Sheets 
+
+## После изменений
+
+- Не забудь выполнить `npm install` для обновления зависимостей! 
+
+## Документация
+
+- Next.js: https://nextjs.org/docs
+- Google Sheets API (google-spreadsheet): https://theoephraim.github.io/node-google-spreadsheet/ 
+
+## Вопросы и поддержка
+
+Если что-то не работает — создай issue или напиши в чат! 
