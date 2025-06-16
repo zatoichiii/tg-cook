@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 
+console.log('GOOGLE_PRIVATE_KEY:', process.env.NEXT_PUBLIC_GOOGLE_PRIVATE_KEY);
+console.log('GOOGLE_SERVICE_ACCOUNT_EMAIL:', process.env.NEXT_PUBLIC_GOOGLE_SERVICE_ACCOUNT_EMAIL);
+console.log('GOOGLE_SHEET_ID:', process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID);
+
 function DishCard({ dish, onDetail, inCart, onAddToCart }) {
   return (
     <div className="dish-card">
