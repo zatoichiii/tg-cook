@@ -6,7 +6,7 @@ console.log('GOOGLE_SERVICE_ACCOUNT_EMAIL:', process.env.GOOGLE_SERVICE_ACCOUNT_
 console.log('GOOGLE_SHEET_ID:', process.env.GOOGLE_SHEET_ID);
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET' && req.method !== 'POST') {
+  if (req.method !== 'GET' && req.method !== 'POST' && req.method !== 'PATCH' && req.method !== 'DELETE') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
@@ -52,6 +52,53 @@ export default async function handler(req, res) {
       console.log('MAPPED:', mapped);
       const data = mapped.filter(d => d.name && d.price);
       console.log('FILTERED:', data);
+      res.status(200).json({ data, balanceA2 });
+    } else if (req.method === 'PATCH') {
+      // Списание баланса при заказе
+      const serviceAccountAuth = new JWT({
+        email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+      });
+      const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID, serviceAccountAuth);
+      await doc.loadInfo();
+      const sheet = doc.sheetsByIndex[0];
+      await sheet.loadCells('A2');
+      const cell = sheet.getCellByA1('A2');
+      let balance = Number(cell.value);
+      const { total } = req.body;
+      if (typeof total !== 'number' || isNaN(total) || total <= 0) {
+        return res.status(400).json({ error: 'Некорректная сумма заказа' });
+      }
+      if (balance < total) {
+        return res.status(400).json({ error: 'Недостаточно средств' });
+      }
+      balance -= total;
+      cell.value = balance;
+      await sheet.saveUpdatedCells();
+      res.status(200).json({ balance });
+    } else if (req.method === 'DELETE') {
+      // Удаление блюда по имени
+      const serviceAccountAuth = new JWT({
+        email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+      });
+      const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID, serviceAccountAuth);
+      await doc.loadInfo();
+      const sheet = doc.sheetsByIndex[0];
+      const { name } = req.body;
+      if (!name) return res.status(400).json({ error: 'Не указано имя блюда' });
+      const rows = await sheet.getRows();
+      const row = rows.find(r => r.get('name') === name);
+      if (!row) return res.status(404).json({ error: 'Блюдо не найдено' });
+      await row.delete();
+      // Получаем обновлённые блюда и баланс
+      await sheet.loadCells('A2');
+      const balanceA2 = sheet.getCellByA1('A2').value;
+      const updatedRows = await sheet.getRows();
+      const mapped = updatedRows.map(r => r.toObject());
+      const data = mapped.filter(d => d.name && d.price);
       res.status(200).json({ data, balanceA2 });
     }
   } catch (error) {

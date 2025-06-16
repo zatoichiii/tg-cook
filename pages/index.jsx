@@ -93,6 +93,35 @@ function CartModal({ open, onClose, cart, onOrder, balance }) {
   );
 }
 
+function DishDetailModal({ open, dish, inCart, onAddToCart, onRemoveFromCart, onDelete, onClose }) {
+  if (!open || !dish) return null;
+  return (
+    <div className="add-modal">
+      <div className="add-modal-content" style={{ maxWidth: 400 }}>
+        <img src={dish.image || '/no-image.png'} alt={dish.name} style={{ width: '100%', borderRadius: 12, marginBottom: 16 }} />
+        <h2 style={{ marginBottom: 8 }}>{dish.name}</h2>
+        <div style={{ color: '#2563eb', fontWeight: 700, fontSize: 18, marginBottom: 8 }}>{dish.price ? `${dish.price} ₽` : '—'}</div>
+        <div style={{ marginBottom: 16, color: '#374151' }}>{dish.description || <span style={{ color: '#9ca3af' }}>Нет описания</span>}</div>
+        <div style={{ display: 'flex', flexDirection: "column",  gap: 8, marginBottom: 8 }}>
+          {!inCart ? (
+            <button className="button-accent" onClick={() => { onAddToCart(dish); onClose(); }}>
+              В корзину
+            </button>
+          ) : (
+            <button className="input" style={{ background: '#f3f4f6' }} onClick={() => { onRemoveFromCart(dish); onClose(); }}>
+              Убрать из корзины
+            </button>
+          )}
+          <button className="input" onClick={onClose}>Закрыть</button>
+        </div>
+        <button className="input" style={{ background: '#ef4444', color: '#fff', width: '100%' }} onClick={() => onDelete(dish)}>
+          Удалить блюдо
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [dishes, setDishes] = useState([]);
   const [balance, setBalance] = useState(0);
@@ -128,13 +157,47 @@ export default function Home() {
   const handleAddToCart = (dish) => {
     if (!cart.find(d => d.name === dish.name)) setCart([...cart, dish]);
   };
+  // Корзина: убрать блюдо
+  const handleRemoveFromCart = (dish) => {
+    setCart(cart.filter(d => d.name !== dish.name));
+  };
   // Корзина: оформить заказ
-  const handleOrder = () => {
+  const handleOrder = async () => {
     const total = cart.reduce((sum, d) => sum + Number(d.price || 0), 0);
-    setBalance(b => b - total);
-    alert('Заказ отправлен!\n' + cart.map(d => `${d.name} — ${d.price}₽`).join('\n'));
-    setCart([]);
-    setCartOpen(false);
+    try {
+      const res = await fetch('/api/sheets', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ total }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Ошибка оформления заказа');
+      setBalance(json.balance);
+      alert('Заказ отправлен!\n' + cart.map(d => `${d.name} — ${d.price}₽`).join('\n'));
+      setCart([]);
+      setCartOpen(false);
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
+  // Удаление блюда
+  const handleDeleteDish = async (dish) => {
+    try {
+      const res = await fetch('/api/sheets', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: dish.name }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Ошибка удаления блюда');
+      setDishes(json.data.filter(d => d.name && d.price));
+      if (json.balanceA2 !== undefined) setBalance(Number(json.balanceA2));
+      setCart(cart.filter(d => d.name !== dish.name));
+      setDetail(null);
+    } catch (e) {
+      setError(e.message);
+    }
   };
 
   return (
@@ -169,11 +232,16 @@ export default function Home() {
       </button>
       <AddDishModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={handleAddDish} />
       <CartModal open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} onOrder={handleOrder} balance={balance} />
+      <DishDetailModal
+        open={!!detail}
+        dish={detail}
+        inCart={!!detail && !!cart.find(d => d.name === detail.name)}
+        onAddToCart={handleAddToCart}
+        onRemoveFromCart={handleRemoveFromCart}
+        onDelete={handleDeleteDish}
+        onClose={() => setDetail(null)}
+      />
     </div>
   );
 }
 
-// Tailwind input style
-// Вставьте в globals.css:
-// .input { @apply w-full border rounded-xl px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-primary; }
-// .animate-fadeIn { @apply animate-fadeIn; }
