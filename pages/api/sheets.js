@@ -66,7 +66,7 @@ export default async function handler(req, res) {
       await sheet.loadCells('A2');
       const cell = sheet.getCellByA1('A2');
       let balance = Number(cell.value);
-      const { total } = req.body;
+      const { total, items } = req.body;
       if (typeof total !== 'number' || isNaN(total) || total <= 0) {
         return res.status(400).json({ error: 'Некорректная сумма заказа' });
       }
@@ -76,6 +76,26 @@ export default async function handler(req, res) {
       balance -= total;
       cell.value = balance;
       await sheet.saveUpdatedCells();
+      // Отправка сообщения в Telegram
+      try {
+        const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+        const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+        if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID && Array.isArray(items)) {
+          const orderText = `Новый заказ!\n` +
+            items.map(d => `${d.name} — ${d.price}₽`).join('\n') +
+            `\nСумма: ${total}₽`;
+          await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: TELEGRAM_CHAT_ID,
+              text: orderText,
+            }),
+          });
+        }
+      } catch (e) {
+        console.error('Ошибка отправки в Telegram:', e);
+      }
       res.status(200).json({ balance });
     } else if (req.method === 'DELETE') {
       // Удаление блюда по имени

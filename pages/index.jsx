@@ -76,7 +76,7 @@ function CartModal({ open, onClose, cart, onOrder, balance }) {
           </ul>
         )}
         <div style={{ marginBottom: 8, textAlign: 'center' }}>Итого: <b>{total} ₽</b></div>
-        <div style={{ marginBottom: 16, textAlign: 'center' }}>Баланс: <b>{balance} ₽</b></div>
+        <div style={{ marginBottom: 16, textAlign: 'center' }}>Баланс: <b>{balance} баллов</b></div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             style={{ background: '#22c55e', color: '#fff', padding: '8px 16px', borderRadius: '1rem', fontWeight: 600, fontSize: 16, border: 'none', width: '100%' }}
@@ -122,6 +122,14 @@ function DishDetailModal({ open, dish, inCart, onAddToCart, onRemoveFromCart, on
   );
 }
 
+function Notification({ message, onClose }) {
+  return (
+    <div style={{ position: 'fixed', bottom: 16, left: '50%', transform: 'translateX(-50%)', background: '#22c55e', color: '#fff', padding: '8px 16px', borderRadius: 8, boxShadow: '0 2px 4px rgba(0,0,0,0.1)', zIndex: 1000 }}>
+      {message}
+    </div>
+  );
+}
+
 export default function Home() {
   const [dishes, setDishes] = useState([]);
   const [balance, setBalance] = useState(0);
@@ -130,6 +138,7 @@ export default function Home() {
   const [cartOpen, setCartOpen] = useState(false);
   const [cart, setCart] = useState([]);
   const [detail, setDetail] = useState(null);
+  const [notification, setNotification] = useState(null);
 
   // Загрузка данных
   const fetchData = async () => {
@@ -168,14 +177,15 @@ export default function Home() {
       const res = await fetch('/api/sheets', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ total }),
+        body: JSON.stringify({ total, items: cart }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Ошибка оформления заказа');
       setBalance(json.balance);
-      alert('Заказ отправлен!\n' + cart.map(d => `${d.name} — ${d.price}₽`).join('\n'));
       setCart([]);
       setCartOpen(false);
+      setNotification('Заказ успешно оформлен!');
+      setTimeout(() => setNotification(null), 3000);
     } catch (e) {
       setError(e.message);
     }
@@ -241,6 +251,7 @@ export default function Home() {
         onDelete={handleDeleteDish}
         onClose={() => setDetail(null)}
       />
+      {notification && <Notification message={notification} onClose={() => setNotification(null)} />}
     </div>
   );
 }
