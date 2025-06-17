@@ -308,10 +308,6 @@ body {
     max-width: 100vw;
     padding: 0 2px 24px 2px;
   }
-  .dishes-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
   .cart-modal-content, .add-modal-content {
     max-width: 98vw;
     padding: 18px 4px 12px 4px;
