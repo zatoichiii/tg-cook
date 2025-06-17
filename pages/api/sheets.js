@@ -82,8 +82,8 @@ export default async function handler(req, res) {
         const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
         if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID && Array.isArray(items)) {
           const orderText = `Новый заказ!\n` +
-            items.map(d => `${d.name} — ${d.price}₽`).join('\n') +
-            `\nСумма: ${total}₽`;
+            items.map(d => `${d.name} — ${d.price} Баллов`).join('\n') +
+            `\nСумма: ${total} Баллов`;
           await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

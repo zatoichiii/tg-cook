@@ -9,7 +9,7 @@ function DishCard({ dish, onDetail, inCart, onAddToCart }) {
     <div className="dish-card">
       <img src={dish.image || '/no-image.png'} alt={dish.name} />
       <div className="name">{dish.name}</div>
-      <div className="price">{dish.price ? `${dish.price} ₽` : '—'}</div>
+      <div className="price">{dish.price ? `${dish.price} Баллов` : '—'}</div>
       <button
         className={inCart ? 'add' : 'add'}
         onClick={() => onAddToCart(dish)}
@@ -70,13 +70,13 @@ function CartModal({ open, onClose, cart, onOrder, balance }) {
             {cart.map((dish, i) => (
               <li key={i} style={{ padding: '8px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontWeight: 500, fontSize: 14 }}>{dish.name}</span>
-                <span style={{ fontWeight: 700, color: '#2563eb' }}>{dish.price} ₽</span>
+                <span style={{ fontWeight: 700, color: '#2563eb' }}>{dish.price} Баллов</span>
               </li>
             ))}
           </ul>
         )}
-        <div style={{ marginBottom: 8, textAlign: 'center' }}>Итого: <b>{total} ₽</b></div>
-        <div style={{ marginBottom: 16, textAlign: 'center' }}>Баланс: <b>{balance} баллов</b></div>
+        <div style={{ marginBottom: 8, textAlign: 'center' }}>Итого: <b>{total} Баллов</b></div>
+        <div style={{ marginBottom: 16, textAlign: 'center' }}>Баланс: <b>{balance} Баллов</b></div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             style={{ background: '#22c55e', color: '#fff', padding: '8px 16px', borderRadius: '1rem', fontWeight: 600, fontSize: 16, border: 'none', width: '100%' }}
@@ -100,7 +100,7 @@ function DishDetailModal({ open, dish, inCart, onAddToCart, onRemoveFromCart, on
       <div className="add-modal-content" style={{ maxWidth: 400 }}>
         <img src={dish.image || '/no-image.png'} alt={dish.name} style={{ width: '100%', borderRadius: 12, marginBottom: 16 }} />
         <h2 style={{ marginBottom: 8 }}>{dish.name}</h2>
-        <div style={{ color: '#2563eb', fontWeight: 700, fontSize: 18, marginBottom: 8 }}>{dish.price ? `${dish.price} ₽` : '—'}</div>
+        <div style={{ color: '#2563eb', fontWeight: 700, fontSize: 18, marginBottom: 8 }}>{dish.price ? `${dish.price} Баллов` : '—'}</div>
         <div style={{ marginBottom: 16, color: '#374151' }}>{dish.description || <span style={{ color: '#9ca3af' }}>Нет описания</span>}</div>
         <div style={{ display: 'flex', flexDirection: "column",  gap: 8, marginBottom: 8 }}>
           {!inCart ? (
@@ -213,7 +213,7 @@ export default function Home() {
   return (
     <div>
       <header className="header">
-        <div className="balance">{balance} ₽</div>
+        <div className="balance">{balance} Баллов</div>
         <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 8 }}>Ваш баланс</div>
         <div>
           <button onClick={() => setAddOpen(true)} className="button-accent">Добавить блюдо</button>
