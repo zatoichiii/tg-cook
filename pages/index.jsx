@@ -151,7 +151,7 @@ function DishDetailModal({ open, dish, inCart, onAddToCart, onRemoveFromCart, on
         <img src={dish.image || '/no-image.png'} alt={dish.name} style={{ width: '100%', borderRadius: 12, marginBottom: 16 }} />
         <h2 style={{ marginBottom: 8 }}>{dish.name}</h2>
         <div style={{ color: '#2563eb', fontWeight: 700, fontSize: 18, marginBottom: 8 }}>{dish.price ? `${dish.price} Баллов` : '—'}</div>
-        <div style={{ marginBottom: 16, color: '#374151' }}>{dish.description || <span style={{ color: '#9ca3af' }}>Нет описания</span>}</div>
+        <div style={{ marginBottom: 16, color: '#374151' }}>{dish.description || <span style={{ color: '#e8e8e8' }}>Нет описания</span>}</div>
         <div style={{ display: 'flex', flexDirection: "column",  gap: 8, marginBottom: 8 }}>
           {!inCart ? (
             <button className="button-accent" onClick={() => { onAddToCart(dish); onClose(); }}>
