@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ShoppingCart, Star } from 'lucide-react';
+import { ShoppingCart, Star, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 console.log('GOOGLE_PRIVATE_KEY:', process.env.NEXT_PUBLIC_GOOGLE_PRIVATE_KEY);
@@ -126,40 +126,69 @@ function AddDishModal({ open, onClose, onAdd }) {
   );
 }
 
-function CartModal({ open, onClose, cart, onOrder, balance }) {
+function CartModal({ open, onClose, cart, onOrder, balance, onRemove }) {
   const total = cart.reduce((sum, d) => sum + Number(d.price || 0), 0);
   if (!open) return null;
   return (
-    <div className="cart-modal">
-      <div className="cart-modal-content">
-        <h2>Корзина</h2>
+    <motion.div className="cart-modal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <motion.div className="cart-modal-content" initial={{ scale: 0.96, y: 40 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, y: 40 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: 0.01 }}>Корзина</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#9ca3af', fontSize: 26, cursor: 'pointer', borderRadius: 8, padding: 4, transition: 'background 0.18s' }} aria-label="Закрыть"><X size={28} /></button>
+        </div>
         {cart.length === 0 ? (
-          <div style={{ color: '#9ca3af', marginBottom: 16, textAlign: 'center' }}>Корзина пуста</div>
+          <div style={{ color: '#9ca3af', margin: '32px 0 24px 0', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <ShoppingCart size={48} style={{ opacity: 0.25, marginBottom: 8 }} />
+            <div style={{ fontWeight: 600, fontSize: 18 }}>Корзина пуста</div>
+            <div style={{ fontSize: 14, color: '#6b7280' }}>Добавьте блюда из меню</div>
+          </div>
         ) : (
-          <ul style={{ marginBottom: 16, borderTop: '1px solid #f3f4f6' }}>
-            {cart.map((dish, i) => (
-              <li key={i} style={{ padding: '8px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 500, fontSize: 14 }}>{dish.name}</span>
-                <span style={{ fontWeight: 700, color: '#2563eb' }}>{dish.price} Баллов</span>
-              </li>
-            ))}
-          </ul>
+          <motion.ul style={{ marginBottom: 18, borderTop: '1px solid #25304a', padding: 0, listStyle: 'none', maxHeight: 260, overflowY: 'auto' }}>
+            <AnimatePresence>
+              {cart.map((dish, i) => (
+                <motion.li
+                  key={dish.name + i}
+                  initial={{ opacity: 0, x: 40 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 40 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid #232b3a', position: 'relative', minHeight: 64
+                  }}
+                >
+                  <img src={dish.image || '/no-image.png'} alt={dish.name} style={{ width: 48, height: 48, borderRadius: 16, objectFit: 'cover', background: '#232b3a', border: '1.5px solid #232b3a', boxShadow: '0 2px 8px 0 rgba(59,130,246,0.08)' }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 15, color: '#e5e7eb', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{dish.name}</div>
+                    <div style={{ color: '#60a5fa', fontWeight: 700, fontSize: 15 }}>{dish.price} Баллов</div>
+                  </div>
+                  <motion.button
+                    onClick={() => onRemove(dish)}
+                    style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: 22, cursor: 'pointer', borderRadius: 8, padding: 4, marginLeft: 2 }}
+                    whileTap={{ scale: 0.8 }}
+                    aria-label="Удалить блюдо"
+                  >
+                    <X size={22} />
+                  </motion.button>
+                </motion.li>
+              ))}
+            </AnimatePresence>
+          </motion.ul>
         )}
-        <div style={{ marginBottom: 8, textAlign: 'center' }}>Итого: <b>{total} Баллов</b></div>
-        <div style={{ marginBottom: 16, textAlign: 'center' }}>Баланс: <b>{balance} Баллов</b></div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ marginBottom: 10, textAlign: 'center', fontSize: 17, fontWeight: 600 }}>Итого: <b>{total} Баллов</b></div>
+        <div style={{ marginBottom: 18, textAlign: 'center', color: '#9ca3af', fontSize: 15 }}>Баланс: <b style={{ color: '#60a5fa' }}>{balance} Баллов</b></div>
+        <motion.div style={{ display: 'flex', gap: 10 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <button
-            style={{ background: '#22c55e', color: '#fff', padding: '8px 16px', borderRadius: '1rem', fontWeight: 600, fontSize: 16, border: 'none', width: '100%' }}
+            style={{ background: 'linear-gradient(90deg, #22c55e 60%, #4ade80 100%)', color: '#fff', padding: '14px 0', borderRadius: '1.2rem', fontWeight: 700, fontSize: 18, border: 'none', width: '100%', boxShadow: '0 4px 16px 0 rgba(34,197,94,0.10)', transition: 'background 0.18s' }}
             onClick={onOrder}
             disabled={cart.length === 0 || total > balance}
           >
             Оформить заказ
           </button>
-          <button style={{ background: '#f3f4f6', padding: '8px 16px', borderRadius: '1rem', fontSize: 16, border: 'none', width: '100%' }} onClick={onClose}>Закрыть</button>
-        </div>
-        {total > balance && <div style={{ color: '#ef4444', marginTop: 8, textAlign: 'center' }}>Недостаточно средств</div>}
-      </div>
-    </div>
+          <button style={{ background: '#232b3a', color: '#e5e7eb', padding: '14px 0', borderRadius: '1.2rem', fontWeight: 600, fontSize: 18, border: 'none', width: '100%' }} onClick={onClose}>Закрыть</button>
+        </motion.div>
+        {total > balance && <div style={{ color: '#ef4444', marginTop: 10, textAlign: 'center', fontWeight: 600 }}>Недостаточно средств</div>}
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -401,7 +430,7 @@ export default function Home() {
       </motion.button>
       <AnimatePresence>
         {addOpen && <AddDishModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={handleAddDish} />}
-        {cartOpen && <CartModal open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} onOrder={handleOrder} balance={balance} />}
+        {cartOpen && <CartModal open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} onOrder={handleOrder} balance={balance} onRemove={handleRemoveFromCart} />}
         {detail && <DishDetailModal
           open={!!detail}
           dish={detail}
