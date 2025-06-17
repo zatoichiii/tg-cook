@@ -180,6 +180,34 @@ function Notification({ message, onClose }) {
   );
 }
 
+function SkeletonLoader() {
+  return (
+    <div className="dishes-grid">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="dish-card skeleton">
+          <div className="skeleton-image" />
+          <div className="skeleton-text" style={{ width: '80%' }} />
+          <div className="skeleton-text" style={{ width: '40%' }} />
+          <div className="skeleton-button" />
+          <div className="skeleton-button" style={{ width: '60%' }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function BalanceSkeleton() {
+  return (
+    <div className="header">
+      <div className="balance skeleton-text" style={{ width: '120px' }} />
+      <div className="balance-label skeleton-text" style={{ width: '80px' }} />
+      <div>
+        <button className="button-accent" disabled>Добавить блюдо</button>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [dishes, setDishes] = useState([]);
   const [balance, setBalance] = useState(0);
@@ -190,6 +218,7 @@ export default function Home() {
   const [detail, setDetail] = useState(null);
   const [notification, setNotification] = useState(null);
   const [activeTab, setActiveTab] = useState('Все');
+  const [isLoading, setIsLoading] = useState(true);
 
   // Get unique categories
   const categories = ['Все', ...new Set(dishes.map(dish => dish.type).filter(Boolean))];
@@ -201,12 +230,20 @@ export default function Home() {
 
   // Загрузка данных
   const fetchData = async () => {
-    const res = await fetch('/api/sheets');
-    const json = await res.json();
-    if (json.data) setDishes(json.data);
-    if (json.balanceA2 !== undefined) setBalance(Number(json.balanceA2));
-    if (json.error) setError(json.error);
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/sheets');
+      const json = await res.json();
+      if (json.data) setDishes(json.data);
+      if (json.balanceA2 !== undefined) setBalance(Number(json.balanceA2));
+      if (json.error) setError(json.error);
+    } catch (e) {
+      setError('Ошибка загрузки данных');
+    } finally {
+      setIsLoading(false);
+    }
   };
+
   useEffect(() => { fetchData(); }, []);
 
   // Добавление блюда
@@ -271,41 +308,52 @@ export default function Home() {
 
   return (
     <div className="app-container">
-      <header className="header">
-        <div className="balance">{balance} Баллов</div>
-        <div className="balance-label">Ваш баланс</div>
-        <div>
-          <button onClick={() => setAddOpen(true)} className="button-accent">Добавить блюдо</button>
-        </div>
-      </header>
-      <main className="main-content">
-        {error && <div className="error-message">Ошибка: {error}</div>}
-        
-        {/* Tabs */}
-        <div className="tabs-container">
-          {categories.map(category => (
-            <button
-              key={category}
-              onClick={() => setActiveTab(category)}
-              className={`tab-button ${activeTab === category ? 'active' : ''}`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
+      {isLoading ? (
+        <>
+          <BalanceSkeleton />
+          <main className="main-content">
+            <SkeletonLoader />
+          </main>
+        </>
+      ) : (
+        <>
+          <header className="header">
+            <div className="balance">{balance} Баллов</div>
+            <div className="balance-label">Ваш баланс</div>
+            <div>
+              <button onClick={() => setAddOpen(true)} className="button-accent">Добавить блюдо</button>
+            </div>
+          </header>
+          <main className="main-content">
+            {error && <div className="error-message">Ошибка: {error}</div>}
+            
+            {/* Tabs */}
+            <div className="tabs-container">
+              {categories.map(category => (
+                <button
+                  key={category}
+                  onClick={() => setActiveTab(category)}
+                  className={`tab-button ${activeTab === category ? 'active' : ''}`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
 
-        <div className="dishes-grid">
-          {filteredDishes.map((dish, i) => (
-            <DishCard
-              key={i}
-              dish={dish}
-              onDetail={setDetail}
-              inCart={!!cart.find(d => d.name === dish.name)}
-              onAddToCart={handleAddToCart}
-            />
-          ))}
-        </div>
-      </main>
+            <div className="dishes-grid">
+              {filteredDishes.map((dish, i) => (
+                <DishCard
+                  key={i}
+                  dish={dish}
+                  onDetail={setDetail}
+                  inCart={!!cart.find(d => d.name === dish.name)}
+                  onAddToCart={handleAddToCart}
+                />
+              ))}
+            </div>
+          </main>
+        </>
+      )}
       <button
         onClick={() => setCartOpen(true)}
         className="cart-fab"
