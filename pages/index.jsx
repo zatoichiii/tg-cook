@@ -7,6 +7,10 @@ console.log('GOOGLE_SERVICE_ACCOUNT_EMAIL:', process.env.NEXT_PUBLIC_GOOGLE_SERV
 console.log('GOOGLE_SHEET_ID:', process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID);
 
 function DishCard({ dish, onDetail, inCart, onAddToCart }) {
+  const handleCardClick = (e) => {
+    if (e.target.closest('.add-to-cart-btn')) return;
+    onDetail(dish);
+  };
   return (
     <motion.div
       className="dish-card"
@@ -16,6 +20,10 @@ function DishCard({ dish, onDetail, inCart, onAddToCart }) {
       exit={{ opacity: 0, y: 40 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       whileTap={{ scale: 0.97 }}
+      onClick={handleCardClick}
+      tabIndex={0}
+      role="button"
+      aria-label={`Подробнее о ${dish.name}`}
     >
       <div className="dish-image-wrap">
         <img src={dish.image || '/no-image.png'} alt={dish.name} />
@@ -24,19 +32,15 @@ function DishCard({ dish, onDetail, inCart, onAddToCart }) {
       <div className="name">{dish.name}</div>
       <div className="price-row">
         <div className="price">{dish.price ? `${dish.price} Баллов` : '—'}</div>
-        <button className="fav-btn" title="В избранное"><Star size={18} /></button>
       </div>
       <motion.button
-        className={inCart ? 'add' : 'add'}
-        onClick={() => onAddToCart(dish)}
+        className="add add-to-cart-btn"
+        onClick={e => { e.stopPropagation(); onAddToCart(dish); }}
         disabled={inCart}
         whileTap={{ scale: 0.96 }}
       >
         {inCart ? 'В корзине' : 'В корзину'}
       </motion.button>
-      <button className="detail" onClick={() => onDetail(dish)}>
-        Подробнее
-      </button>
     </motion.div>
   );
 }

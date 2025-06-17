@@ -107,7 +107,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: box-shadow 0.22s, border 0.22s;
+  transition: box-shadow 0.22s, border 0.22s, background 0.18s;
   cursor: pointer;
   position: relative;
   border: 1.5px solid #25304a;
@@ -118,6 +118,10 @@ body {
 .dish-card:hover {
   box-shadow: 0 10px 36px 0 rgba(59,130,246,0.18), 0 2px 12px 0 rgba(30,41,59,0.10);
   border-color: #3b82f6;
+}
+.dish-card:active {
+  background: #222b3a;
+  box-shadow: 0 2px 8px 0 rgba(59,130,246,0.10);
 }
 .dish-image-wrap {
   position: relative;
@@ -172,19 +176,7 @@ body {
   letter-spacing: 0.01em;
 }
 .fav-btn {
-  background: none;
-  border: none;
-  color: #fbbf24;
-  padding: 4px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: background 0.18s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.fav-btn:active {
-  background: #fbbf2433;
+  display: none !important;
 }
 .dish-card button {
   width: 100%;
