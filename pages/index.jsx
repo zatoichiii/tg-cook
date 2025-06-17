@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Star } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 console.log('GOOGLE_PRIVATE_KEY:', process.env.NEXT_PUBLIC_GOOGLE_PRIVATE_KEY);
 console.log('GOOGLE_SERVICE_ACCOUNT_EMAIL:', process.env.NEXT_PUBLIC_GOOGLE_SERVICE_ACCOUNT_EMAIL);
@@ -7,21 +8,36 @@ console.log('GOOGLE_SHEET_ID:', process.env.NEXT_PUBLIC_GOOGLE_SHEET_ID);
 
 function DishCard({ dish, onDetail, inCart, onAddToCart }) {
   return (
-    <div className="dish-card">
-      <img src={dish.image || '/no-image.png'} alt={dish.name} />
+    <motion.div
+      className="dish-card"
+      layout
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 40 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      whileTap={{ scale: 0.97 }}
+    >
+      <div className="dish-image-wrap">
+        <img src={dish.image || '/no-image.png'} alt={dish.name} />
+        {dish.type && <span className="dish-type-badge">{dish.type}</span>}
+      </div>
       <div className="name">{dish.name}</div>
-      <div className="price">{dish.price ? `${dish.price} Баллов` : '—'}</div>
-      <button
+      <div className="price-row">
+        <div className="price">{dish.price ? `${dish.price} Баллов` : '—'}</div>
+        <button className="fav-btn" title="В избранное"><Star size={18} /></button>
+      </div>
+      <motion.button
         className={inCart ? 'add' : 'add'}
         onClick={() => onAddToCart(dish)}
         disabled={inCart}
+        whileTap={{ scale: 0.96 }}
       >
         {inCart ? 'В корзине' : 'В корзину'}
-      </button>
+      </motion.button>
       <button className="detail" onClick={() => onDetail(dish)}>
         Подробнее
       </button>
-    </div>
+    </motion.div>
   );
 }
 
@@ -174,9 +190,19 @@ function DishDetailModal({ open, dish, inCart, onAddToCart, onRemoveFromCart, on
 
 function Notification({ message, onClose }) {
   return (
-    <div style={{ position: 'fixed', bottom: 16, left: '50%', transform: 'translateX(-50%)', background: '#22c55e', color: '#fff', padding: '8px 16px', borderRadius: 8, boxShadow: '0 2px 4px rgba(0,0,0,0.1)', zIndex: 1000 }}>
-      {message}
-    </div>
+    <AnimatePresence>
+      {message && (
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 40 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', background: '#22c55e', color: '#fff', padding: '12px 24px', borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.18)', zIndex: 1000, fontWeight: 600, fontSize: 16 }}
+        >
+          {message}
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -328,50 +354,60 @@ export default function Home() {
             {error && <div className="error-message">Ошибка: {error}</div>}
             
             {/* Tabs */}
-            <div className="tabs-container">
+            <motion.div className="tabs-container" layout>
               {categories.map(category => (
-                <button
+                <motion.button
                   key={category}
                   onClick={() => setActiveTab(category)}
                   className={`tab-button ${activeTab === category ? 'active' : ''}`}
+                  whileTap={{ scale: 0.96 }}
+                  layout
                 >
                   {category}
-                </button>
+                </motion.button>
               ))}
-            </div>
+            </motion.div>
 
-            <div className="dishes-grid">
-              {filteredDishes.map((dish, i) => (
-                <DishCard
-                  key={i}
-                  dish={dish}
-                  onDetail={setDetail}
-                  inCart={!!cart.find(d => d.name === dish.name)}
-                  onAddToCart={handleAddToCart}
-                />
-              ))}
-            </div>
+            <AnimatePresence mode="popLayout">
+              <div className="dishes-grid">
+                {filteredDishes.map((dish, i) => (
+                  <DishCard
+                    key={dish.name + i}
+                    dish={dish}
+                    onDetail={setDetail}
+                    inCart={!!cart.find(d => d.name === dish.name)}
+                    onAddToCart={handleAddToCart}
+                  />
+                ))}
+              </div>
+            </AnimatePresence>
           </main>
         </>
       )}
-      <button
+      <motion.button
         onClick={() => setCartOpen(true)}
         className="cart-fab"
+        whileTap={{ scale: 0.92 }}
+        whileHover={{ scale: 1.06 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        style={{ boxShadow: '0 8px 32px 0 rgba(59,130,246,0.25)' }}
       >
-        <ShoppingCart size={24} />
+        <ShoppingCart size={28} />
         {cart.length > 0 && <span className="cart-count">{cart.length}</span>}
-      </button>
-      <AddDishModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={handleAddDish} />
-      <CartModal open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} onOrder={handleOrder} balance={balance} />
-      <DishDetailModal
-        open={!!detail}
-        dish={detail}
-        inCart={!!detail && !!cart.find(d => d.name === detail.name)}
-        onAddToCart={handleAddToCart}
-        onRemoveFromCart={handleRemoveFromCart}
-        onDelete={handleDeleteDish}
-        onClose={() => setDetail(null)}
-      />
+      </motion.button>
+      <AnimatePresence>
+        {addOpen && <AddDishModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={handleAddDish} />}
+        {cartOpen && <CartModal open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} onOrder={handleOrder} balance={balance} />}
+        {detail && <DishDetailModal
+          open={!!detail}
+          dish={detail}
+          inCart={!!detail && !!cart.find(d => d.name === detail.name)}
+          onAddToCart={handleAddToCart}
+          onRemoveFromCart={handleRemoveFromCart}
+          onDelete={handleDeleteDish}
+          onClose={() => setDetail(null)}
+        />}
+      </AnimatePresence>
       {notification && <Notification message={notification} onClose={() => setNotification(null)} />}
     </div>
   );
