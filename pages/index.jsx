@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ShoppingCart } from 'lucide-react';
 
 console.log('GOOGLE_PRIVATE_KEY:', process.env.NEXT_PUBLIC_GOOGLE_PRIVATE_KEY);
 console.log('GOOGLE_SERVICE_ACCOUNT_EMAIL:', process.env.NEXT_PUBLIC_GOOGLE_SERVICE_ACCOUNT_EMAIL);
@@ -25,17 +26,43 @@ function DishCard({ dish, onDetail, inCart, onAddToCart }) {
 }
 
 function AddDishModal({ open, onClose, onAdd }) {
-  const [form, setForm] = useState({ name: '', image: '', price: '', description: '' });
+  const [form, setForm] = useState({ name: '', image: '', price: '', description: '', type: 'Завтрак' });
   const [loading, setLoading] = useState(false);
+  const [customType, setCustomType] = useState('');
+  const [showCustomType, setShowCustomType] = useState(false);
+
+  const dishTypes = ['Завтрак', 'Обед', 'Ужин', 'Другое'];
+
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+  
+  const handleTypeChange = (e) => {
+    const value = e.target.value;
+    if (value === 'Другое') {
+      setShowCustomType(true);
+      setForm(f => ({ ...f, type: '' }));
+    } else {
+      setShowCustomType(false);
+      setForm(f => ({ ...f, type: value }));
+    }
+  };
+
+  const handleCustomTypeChange = (e) => {
+    const value = e.target.value;
+    setCustomType(value);
+    setForm(f => ({ ...f, type: value }));
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
     setLoading(true);
     await onAdd(form);
-    setForm({ name: '', image: '', price: '', description: '' });
+    setForm({ name: '', image: '', price: '', description: '', type: 'Завтрак' });
+    setCustomType('');
+    setShowCustomType(false);
     setLoading(false);
     onClose();
   };
+
   if (!open) return null;
   return (
     <div className="add-modal">
@@ -45,6 +72,29 @@ function AddDishModal({ open, onClose, onAdd }) {
         <input name="image" placeholder="URL картинки" className="input" value={form.image} onChange={handleChange} />
         <input name="price" required placeholder="Цена" type="number" min="0" className="input" value={form.price} onChange={handleChange} />
         <textarea name="description" placeholder="Описание" className="input" value={form.description} onChange={handleChange} />
+        
+        <select 
+          className="input" 
+          value={showCustomType ? 'Другое' : form.type} 
+          onChange={handleTypeChange}
+          style={{ marginBottom: showCustomType ? 8 : 16 }}
+        >
+          {dishTypes.map(type => (
+            <option key={type} value={type}>{type}</option>
+          ))}
+        </select>
+
+        {showCustomType && (
+          <input
+            name="customType"
+            placeholder="Введите свой тип блюда"
+            className="input"
+            value={customType}
+            onChange={handleCustomTypeChange}
+            style={{ marginBottom: 16 }}
+          />
+        )}
+
         <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
           <button type="submit" className="button-accent" disabled={loading}>
             {loading ? 'Добавление...' : 'Добавить'}
@@ -139,6 +189,15 @@ export default function Home() {
   const [cart, setCart] = useState([]);
   const [detail, setDetail] = useState(null);
   const [notification, setNotification] = useState(null);
+  const [activeTab, setActiveTab] = useState('Все');
+
+  // Get unique categories
+  const categories = ['Все', ...new Set(dishes.map(dish => dish.type).filter(Boolean))];
+
+  // Filter dishes based on active tab
+  const filteredDishes = activeTab === 'Все' 
+    ? dishes 
+    : dishes.filter(dish => dish.type === activeTab);
 
   // Загрузка данных
   const fetchData = async () => {
@@ -211,18 +270,32 @@ export default function Home() {
   };
 
   return (
-    <div>
+    <div className="app-container">
       <header className="header">
         <div className="balance">{balance} Баллов</div>
-        <div style={{ color: '#9ca3af', fontSize: 12, marginBottom: 8 }}>Ваш баланс</div>
+        <div className="balance-label">Ваш баланс</div>
         <div>
           <button onClick={() => setAddOpen(true)} className="button-accent">Добавить блюдо</button>
         </div>
       </header>
-      <main style={{ maxWidth: 480, margin: '16px auto 0', padding: '0 8px' }}>
-        {error && <div style={{ color: '#ef4444', marginBottom: 16, textAlign: 'center' }}>Ошибка: {error}</div>}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          {dishes.map((dish, i) => (
+      <main className="main-content">
+        {error && <div className="error-message">Ошибка: {error}</div>}
+        
+        {/* Tabs */}
+        <div className="tabs-container">
+          {categories.map(category => (
+            <button
+              key={category}
+              onClick={() => setActiveTab(category)}
+              className={`tab-button ${activeTab === category ? 'active' : ''}`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        <div className="dishes-grid">
+          {filteredDishes.map((dish, i) => (
             <DishCard
               key={i}
               dish={dish}
@@ -237,7 +310,7 @@ export default function Home() {
         onClick={() => setCartOpen(true)}
         className="cart-fab"
       >
-        🛒
+        <ShoppingCart size={24} />
         {cart.length > 0 && <span className="cart-count">{cart.length}</span>}
       </button>
       <AddDishModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={handleAddDish} />
